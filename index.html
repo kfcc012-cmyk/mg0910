@@ -684,6 +684,36 @@
       .mini-summary { grid-template-columns: 1fr; }
       .term-row { grid-template-columns: minmax(0, 1fr) 95px; }
     }
+
+    .shortcut-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .mgfaq-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 16px;
+      border: 1px solid rgba(0, 91, 172, 0.2);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--mg-blue-dark);
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 0 8px 20px rgba(20, 58, 88, 0.07);
+      transition: 0.18s;
+    }
+
+    .mgfaq-btn:hover {
+      background: var(--mg-blue-light);
+      border-color: rgba(0, 91, 172, 0.35);
+      transform: translateY(-1px);
+    }
+
   </style>
 </head>
 
@@ -701,6 +731,13 @@
       회차별 상환 스케줄을 간편하게 확인할 수 있습니다.
     </p>
   </header>
+
+
+  <div class="shortcut-row">
+    <a class="mgfaq-btn" href="./mgfaq" aria-label="MG FAQ로 이동">
+      MG FAQ 바로가기
+    </a>
+  </div>
 
   <section class="calculator-grid">
     <aside class="card input-panel">
