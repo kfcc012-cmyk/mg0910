@@ -1,503 +1,1114 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="등록된 사내 FAQ를 키워드와 분류로 검색하는 도우미">
-  <title>업무 FAQ 검색 도우미</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>업무 FAQ 검색</title>
   <style>
     :root {
-      --primary: #155eef;
-      --primary-dark: #0b46ba;
-      --primary-soft: #eef4ff;
-      --text: #17213a;
-      --muted: #667085;
-      --line: #e4e7ec;
+      --bg: #f5f7fa;
       --surface: #ffffff;
-      --background: #f5f7fb;
-      --highlight: #fff1a8;
-      --shadow: 0 12px 32px rgba(16, 24, 40, 0.07);
-      --radius: 18px;
+      --text: #172033;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #1f6feb;
+      --primary-soft: #eaf2ff;
+      --highlight: #fff2a8;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      --radius: 16px;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      min-width: 320px;
+      font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(circle at 8% 0%, rgba(21, 94, 239, 0.08), transparent 30rem),
-        var(--background);
-      font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
-      line-height: 1.6;
+      background: var(--bg);
     }
 
-    button, input { font: inherit; }
-
-    .page {
-      width: min(960px, calc(100% - 40px));
+    .app {
+      max-width: 960px;
       margin: 0 auto;
-      padding: 64px 0 80px;
+      padding: 56px 20px 72px;
     }
 
-    .header { margin-bottom: 28px; }
+    .header {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 24px;
+      padding: 30px 32px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #1558b0 0%, #1f6feb 58%, #5b8def 100%);
+      color: #fff;
+      box-shadow: 0 18px 40px rgba(31, 111, 235, 0.20);
+    }
+
+
+    .home-link {
+      position: absolute;
+      top: 20px;
+      right: 22px;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid rgba(255,255,255,.34);
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      backdrop-filter: blur(8px);
+      transition: .2s ease;
+    }
+
+    .home-link:hover {
+      background: rgba(255,255,255,.24);
+      transform: translateY(-1px);
+    }
+
+    .header::after {
+      content: "?";
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-52%);
+      font-size: clamp(72px, 12vw, 120px);
+      font-weight: 900;
+      line-height: 1;
+      color: rgba(255,255,255,0.10);
+      pointer-events: none;
+    }
 
     .eyebrow {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-      color: var(--primary);
-      font-size: 14px;
+      gap: 6px;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      font-size: 12px;
       font-weight: 800;
-      letter-spacing: 0.02em;
+      letter-spacing: .02em;
     }
 
-    .eyebrow::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--primary);
-      box-shadow: 0 0 0 5px rgba(21, 94, 239, 0.12);
+    .title {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 8px;
+      font-size: clamp(34px, 5vw, 48px);
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      line-height: 1.15;
     }
 
-    h1 {
+    .title-accent {
+      color: #fff3a3;
+    }
+
+    .subtitle {
+      position: relative;
+      z-index: 1;
       margin: 0;
-      font-size: clamp(30px, 5vw, 44px);
-      line-height: 1.25;
-      letter-spacing: -0.04em;
+      color: rgba(255,255,255,0.88);
+      font-size: 15px;
+      line-height: 1.6;
     }
 
-    .subtitle { margin: 10px 0 0; color: var(--muted); }
-
-    .app-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 20px;
-      padding: 10px 16px;
-      color: var(--primary);
+    .panel {
       background: var(--surface);
-      border: 1px solid #b2ccff;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 750;
-      text-decoration: none;
-      box-shadow: 0 4px 12px rgba(21, 94, 239, 0.08);
-      transition: color .2s, background .2s, border-color .2s, transform .1s;
-    }
-
-    .app-link:hover {
-      color: #fff;
-      background: var(--primary);
-      border-color: var(--primary);
-    }
-
-    .app-link:active { transform: translateY(1px); }
-
-    .app-link svg { width: 17px; height: 17px; }
-
-    .search-panel {
-      padding: 24px;
-      background: var(--surface);
-      border: 1px solid rgba(228, 231, 236, 0.8);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
+      padding: 20px;
     }
 
-    .search-row { display: flex; gap: 10px; }
+    .search-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
 
-    .search-box { position: relative; flex: 1; }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+    }
 
     .search-icon {
       position: absolute;
+      left: 16px;
       top: 50%;
-      left: 17px;
-      width: 21px;
-      height: 21px;
       transform: translateY(-50%);
-      color: #98a2b3;
+      color: #8a94a6;
       pointer-events: none;
+      font-size: 18px;
     }
 
     #searchInput {
       width: 100%;
       height: 52px;
-      padding: 0 48px;
-      color: var(--text);
-      background: #fff;
-      border: 1px solid #d0d5dd;
+      border: 1px solid #d7dce3;
       border-radius: 12px;
+      padding: 0 16px 0 46px;
+      font-size: 16px;
       outline: none;
-      transition: border-color .2s, box-shadow .2s;
+      transition: .2s ease;
+      background: #fff;
     }
-
-    #searchInput::placeholder { color: #98a2b3; }
 
     #searchInput:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(21, 94, 239, 0.12);
+      box-shadow: 0 0 0 4px rgba(31, 111, 235, .10);
     }
 
-    .clear-button {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      width: 32px;
-      height: 32px;
-      padding: 0;
-      color: #667085;
-      background: transparent;
-      border: 0;
-      border-radius: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-    }
-
-    .clear-button:hover { background: #f2f4f7; }
-    .clear-button[hidden] { display: none; }
-
-    .view-all-button {
-      min-width: 100px;
+    .reset-btn {
       height: 52px;
       padding: 0 18px;
-      color: #fff;
-      background: var(--primary);
-      border: 0;
+      border: 1px solid #d7dce3;
       border-radius: 12px;
-      font-weight: 750;
-      cursor: pointer;
-      transition: background .2s, transform .1s;
-    }
-
-    .view-all-button:hover { background: var(--primary-dark); }
-    .view-all-button:active { transform: translateY(1px); }
-
-    .filter-wrap { margin-top: 22px; }
-
-    .filter-label {
-      display: block;
-      margin-bottom: 10px;
-      color: #344054;
-      font-size: 14px;
-      font-weight: 750;
-    }
-
-    .filters { display: flex; flex-wrap: wrap; gap: 8px; }
-
-    .filter-button {
-      min-width: 66px;
-      padding: 8px 16px;
-      color: #475467;
       background: #fff;
-      border: 1px solid #d0d5dd;
-      border-radius: 999px;
+      color: #344054;
       font-weight: 700;
       cursor: pointer;
-      transition: all .2s;
+      white-space: nowrap;
     }
 
-    .filter-button:hover { color: var(--primary); border-color: #84adff; }
+    .reset-btn:hover { background: #f8fafc; }
 
-    .filter-button.active {
-      color: var(--primary);
-      background: var(--primary-soft);
-      border-color: #84adff;
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
     }
 
-    .results-header {
+    .filter-btn {
+      border: 1px solid #d7dce3;
+      background: #fff;
+      color: #4b5563;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .filter-btn:hover { border-color: #aab2bf; }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .result-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      margin: 34px 2px 14px;
+      gap: 12px;
+      margin: 28px 2px 12px;
     }
 
-    .results-header h2 { margin: 0; font-size: 20px; letter-spacing: -0.02em; }
-    .result-count { margin: 0; color: var(--muted); font-size: 14px; }
-    .result-count strong { color: var(--primary); font-size: 16px; }
+    .result-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+    }
 
-    .result-list { display: grid; gap: 14px; }
+    .count {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+    }
 
     .faq-card {
-      padding: 24px 26px;
       background: var(--surface);
       border: 1px solid var(--line);
-      border-radius: 16px;
-      box-shadow: 0 5px 18px rgba(16, 24, 40, 0.035);
-      transition: transform .2s, box-shadow .2s, border-color .2s;
+      border-radius: 14px;
+      padding: 20px;
+      transition: .2s ease;
     }
 
     .faq-card:hover {
-      border-color: #b2ccff;
-      box-shadow: 0 10px 24px rgba(16, 24, 40, 0.07);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
     }
 
-    .card-top { display: flex; align-items: flex-start; gap: 14px; }
-
-    .q-mark {
-      display: grid;
-      place-items: center;
-      flex: 0 0 32px;
-      height: 32px;
-      color: #fff;
-      background: var(--primary);
-      border-radius: 9px;
-      font-weight: 850;
+    .faq-top {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
     }
 
-    .question { flex: 1; margin: 1px 0 0; font-size: 18px; line-height: 1.55; letter-spacing: -0.02em; }
-
-    .category-badge {
-      flex: 0 0 auto;
-      padding: 4px 10px;
-      color: #344054;
-      background: #f2f4f7;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 750;
+    .question {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.55;
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }
 
     .answer {
-      margin: 16px 0 0 46px;
-      padding-top: 16px;
+      margin: 0;
       color: #475467;
-      border-top: 1px solid #f0f1f3;
+      font-size: 15px;
+      line-height: 1.75;
       white-space: pre-wrap;
     }
 
-    mark {
-      padding: 0 2px;
-      color: inherit;
-      background: var(--highlight);
-      border-radius: 3px;
-      font-weight: 750;
-    }
-
-    .empty-state {
-      padding: 56px 24px;
-      text-align: center;
-      color: var(--muted);
-      background: var(--surface);
-      border: 1px dashed #cbd5e1;
-      border-radius: 16px;
-    }
-
-    .empty-icon {
-      display: grid;
-      place-items: center;
-      width: 48px;
-      height: 48px;
-      margin: 0 auto 16px;
-      color: var(--primary);
+    .category {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 10px;
       background: var(--primary-soft);
-      border-radius: 50%;
-      font-size: 23px;
-      font-weight: 850;
+      color: var(--primary);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
     }
 
-    .empty-state strong { display: block; margin-bottom: 5px; color: #344054; }
-    .empty-state p { margin: 0; }
+    mark {
+      background: var(--highlight);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
 
+    .empty {
+      background: var(--surface);
+      border: 1px dashed #cfd5de;
+      border-radius: 14px;
+      padding: 42px 24px;
+      text-align: center;
+      color: #667085;
+      line-height: 1.8;
+    }
+
+    .empty strong {
+      display: block;
+      color: #344054;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+
+    .data-note {
+      margin-top: 20px;
+      color: #8a94a6;
+      font-size: 12px;
+      text-align: right;
+    }
+
+
+    .tabs {
+      display: inline-flex;
+      gap: 6px;
+      margin: 0 0 18px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, .04);
+    }
+
+    .tab-btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 16px;
+      background: transparent;
+      color: #667085;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .tab-btn:hover { color: var(--primary); }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(31, 111, 235, .18);
+    }
+
+    .tab-pane[hidden] { display: none !important; }
+
+    .mg-intro {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .mg-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .mg-card h2,
+    .mg-card h3 {
+      margin: 0 0 8px;
+      letter-spacing: -.02em;
+    }
+
+    .mg-card p {
+      margin: 0;
+      color: #667085;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .mg-contact {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .contact-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding-top: 8px;
+      border-top: 1px solid #eef1f5;
+      font-size: 14px;
+    }
+
+    .contact-row strong { color: #344054; }
+
+    .official-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #eef5ff;
+      color: #1558b0;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .official-link:hover { background: #e2eeff; }
+
+    .mg-categories {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 2px 0 6px;
+      margin: 8px 0 18px;
+      scrollbar-width: none;
+    }
+
+    .mg-categories::-webkit-scrollbar { display: none; }
+
+    .mg-chip {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid #d9e2ef;
+      background: #fff;
+      color: #4b5563;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .2s ease;
+      font-family: inherit;
+    }
+
+    .mg-chip:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: #f8fbff;
+    }
+
+    .mg-chip.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .mg-faq-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mg-faq-item {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      min-height: 62px;
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .mg-num {
+      color: #98a2b3;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .mg-q {
+      color: #344054;
+      font-size: 14px;
+      font-weight: 750;
+      line-height: 1.55;
+    }
+
+    .mg-faq-content {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mg-answer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #eef1f5;
+    }
+
+    .mg-answer-label {
+      color: #667085;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .mg-answer-link {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 11px;
+      border-radius: 9px;
+      background: #eef5ff;
+      color: #1558b0;
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .mg-answer-link:hover { background: #e2eeff; }
+
+    .mg-live-box {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #d9e2ef;
+      border-radius: 14px;
+      background: #f8fbff;
+    }
+
+    .mg-live-box strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #344054;
+    }
+
+    .mg-live-box p {
+      margin: 0;
+      color: #667085;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .source-note {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #f8fafc;
+      color: #667085;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    /* Tablet */
+    @media (max-width: 900px) {
+      .app {
+        max-width: 100%;
+        padding: 40px 24px 56px;
+      }
+
+      .panel { padding: 18px; }
+      .faq-card { padding: 18px; }
+    }
+
+    /* Mobile */
     @media (max-width: 640px) {
-      .page { width: min(100% - 28px, 960px); padding: 38px 0 56px; }
-      .search-panel { padding: 18px; }
-      .search-row { flex-direction: column; }
-      .view-all-button { width: 100%; }
-      .results-header { align-items: flex-end; }
-      .faq-card { padding: 20px 18px; }
-      .card-top { display: grid; grid-template-columns: 32px 1fr; }
-      .category-badge { grid-column: 2; justify-self: start; }
-      .answer { margin-left: 46px; }
+      .app {
+        padding: 28px 14px 40px;
+      }
+
+      .header { margin-bottom: 18px; }
+
+      .title {
+        font-size: 28px;
+        line-height: 1.2;
+      }
+
+      .subtitle {
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .panel {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .search-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      #searchInput {
+        height: 50px;
+        font-size: 16px;
+      }
+
+      .reset-btn {
+        width: 100%;
+        height: 46px;
+      }
+
+      .filters {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .filters::-webkit-scrollbar { display: none; }
+
+      .filter-btn {
+        flex: 0 0 auto;
+        min-height: 40px;
+        padding: 9px 14px;
+      }
+
+      .result-head {
+        margin-top: 22px;
+        align-items: flex-end;
+      }
+
+      .result-title { font-size: 16px; }
+      .count { font-size: 13px; }
+
+      .faq-card {
+        padding: 16px;
+        border-radius: 12px;
+      }
+
+      .faq-top {
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+
+      .question {
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .answer {
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      .category { align-self: flex-start; }
+
+      .empty {
+        padding: 32px 18px;
+        font-size: 14px;
+      }
+
+      .data-note {
+        text-align: left;
+        line-height: 1.5;
+      }
+
+
+      .tabs {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .tab-btn { width: 100%; }
+
+      .mg-intro { grid-template-columns: 1fr; }
+
+      .mg-card { padding: 16px; }
+
+      .mg-faq-item {
+        grid-template-columns: 42px 1fr;
+        padding: 12px;
+      }
+
+      .contact-row {
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .mg-answer-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .mg-answer-link { width: 100%; }
+
+      .home-link {
+        top: 14px;
+        right: 14px;
+        min-height: 36px;
+        padding: 0 11px;
+        font-size: 12px;
+      }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    /* Small mobile */
+    @media (max-width: 380px) {
+      .app { padding-left: 10px; padding-right: 10px; }
+      .title { font-size: 25px; }
+      .panel { padding: 12px; }
+      .faq-card { padding: 14px; }
     }
   </style>
 </head>
 <body>
-  <main class="page">
+  <main class="app">
     <header class="header">
-      <div class="eyebrow">INTERNAL FAQ</div>
-      <h1>업무 FAQ 검색</h1>
-      <p class="subtitle">궁금한 업무 내용을 등록된 FAQ에서 빠르게 찾아보세요.</p>
-      <a class="app-link" href="https://kfcc012-cmyk.github.io/mg0910/mgfaq" aria-label="금융계산기앱으로 이동">
-        금융계산기앱
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
+      <a class="home-link" href="./index" aria-label="메인 페이지로 이동">⌂ 메인으로</a>
+      <h1 class="title">업무 FAQ 검색</h1>
+      <p class="subtitle">등록된 FAQ 데이터에서 질문과 답변을 빠르게 찾아보세요.</p>
     </header>
 
-    <section class="search-panel" aria-label="FAQ 검색 및 분류">
+    <nav class="tabs" aria-label="FAQ 종류 선택">
+      <button class="tab-btn active" type="button" data-tab="internal">사내 FAQ</button>
+      <button class="tab-btn" type="button" data-tab="mg">새마을금고</button>
+    </nav>
+
+    <div id="internalTab" class="tab-pane">
+    <section class="panel" aria-label="FAQ 검색 영역">
       <div class="search-row">
-        <div class="search-box">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="m21 21-4.35-4.35m2.35-5.15a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <label for="searchInput" class="sr-only" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">질문이나 키워드 검색</label>
-          <input id="searchInput" type="search" placeholder="질문이나 키워드를 입력하세요." autocomplete="off">
-          <button id="clearButton" class="clear-button" type="button" aria-label="검색어 지우기" title="검색어 지우기" hidden>×</button>
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input id="searchInput" type="search" placeholder="질문이나 키워드를 입력하세요." autocomplete="off" aria-label="FAQ 검색어" />
         </div>
-        <button id="viewAllButton" class="view-all-button" type="button">전체보기</button>
+        <button id="resetBtn" class="reset-btn" type="button">전체보기</button>
       </div>
 
-      <div class="filter-wrap">
-        <span class="filter-label">분류</span>
-        <div id="filters" class="filters" role="group" aria-label="FAQ 분류 선택">
-          <button class="filter-button active" type="button" data-category="전체" aria-pressed="true">전체</button>
-          <button class="filter-button" type="button" data-category="교육" aria-pressed="false">교육</button>
-          <button class="filter-button" type="button" data-category="문서" aria-pressed="false">문서</button>
-          <button class="filter-button" type="button" data-category="IT" aria-pressed="false">IT</button>
-          <button class="filter-button" type="button" data-category="보안" aria-pressed="false">보안</button>
-        </div>
+      <div class="filters" aria-label="분류 필터">
+        <button class="filter-btn active" data-category="전체" type="button">전체</button>
+        <button class="filter-btn" data-category="교육" type="button">교육</button>
+        <button class="filter-btn" data-category="문서" type="button">문서</button>
+        <button class="filter-btn" data-category="IT" type="button">IT</button>
+        <button class="filter-btn" data-category="보안" type="button">보안</button>
       </div>
     </section>
 
-    <section aria-labelledby="resultsTitle">
-      <div class="results-header">
-        <h2 id="resultsTitle">검색 결과</h2>
-        <p id="resultCount" class="result-count" aria-live="polite"></p>
+    <div class="result-head">
+      <h2 class="result-title">검색 결과</h2>
+      <div id="resultCount" class="count" aria-live="polite"></div>
+    </div>
+
+    <section id="faqList" class="list" aria-live="polite"></section>
+    <div class="data-note">※ 본 화면은 등록된 FAQ 데이터만 표시하며, 미등록 답변을 생성하지 않습니다.</div>
+    </div>
+
+    <section id="mgTab" class="tab-pane" hidden aria-label="새마을금고 FAQ 안내">
+      <div class="mg-intro">
+        <article class="mg-card">
+          <h2>MG새마을금고 자주하는 질문(FAQ)</h2>
+          <p>MG새마을금고 고객센터의 자주하는 질문 페이지에서 제공하는 분류와 최근 FAQ를 연결했습니다. 질문별 상세 답변은 공식 페이지의 원문을 직접 확인할 수 있도록 구성했습니다.</p>
+          <a class="official-link" href="https://www.kfcc.co.kr/customer/cus0101.do" target="_blank" rel="noopener noreferrer">공식 FAQ 페이지 열기 ↗</a>
+        </article>
+
+        <article class="mg-card">
+          <h3>고객센터 안내</h3>
+          <div class="mg-contact">
+            <div class="contact-row"><span>금융문의</span><strong>1599-9000 · 1588-8801</strong></div>
+            <div class="contact-row"><span>공제문의</span><strong>1599-9010</strong></div>
+            <div class="contact-row"><span>보이스피싱 금융사고</span><strong>080-890-0201</strong></div>
+          </div>
+        </article>
       </div>
-      <div id="resultList" class="result-list"></div>
+
+      <div class="result-head">
+        <h2 class="result-title">FAQ 분류</h2>
+        <div class="count">공식 페이지 기준</div>
+      </div>
+
+      <div class="mg-categories" aria-label="새마을금고 FAQ 분류">
+        <button class="mg-chip active" type="button" data-mg-category="전체보기" data-mg-category-num="0">전체보기</button>
+        <button class="mg-chip" type="button" data-mg-category="출자금" data-mg-category-num="1">출자금</button>
+        <button class="mg-chip" type="button" data-mg-category="금고경영" data-mg-category-num="2">금고경영</button>
+        <button class="mg-chip" type="button" data-mg-category="금융사기" data-mg-category-num="3">금융사기</button>
+        <button class="mg-chip" type="button" data-mg-category="통장개설" data-mg-category-num="4">통장개설</button>
+        <button class="mg-chip" type="button" data-mg-category="이상금융거래(FDS)" data-mg-category-num="5">이상금융거래(FDS)</button>
+        <button class="mg-chip" type="button" data-mg-category="수신(총괄)" data-mg-category-num="6">수신(총괄)</button>
+        <button class="mg-chip" type="button" data-mg-category="공제(총괄)" data-mg-category-num="7">공제(총괄)</button>
+        <button class="mg-chip" type="button" data-mg-category="전자금융(총괄)" data-mg-category-num="8">전자금융(총괄)</button>
+        <button class="mg-chip" type="button" data-mg-category="전자금융(법, 약관)" data-mg-category-num="9">전자금융(법, 약관)</button>
+        <button class="mg-chip" type="button" data-mg-category="전자금융(개인)" data-mg-category-num="10">전자금융(개인)</button>
+        <button class="mg-chip" type="button" data-mg-category="전자금융(기업)" data-mg-category-num="11">전자금융(기업)</button>
+        <button class="mg-chip" type="button" data-mg-category="전자금융(스마트뱅킹)" data-mg-category-num="12">전자금융(스마트뱅킹)</button>
+        <button class="mg-chip" type="button" data-mg-category="전자금융(텔레뱅킹)" data-mg-category-num="13">전자금융(텔레뱅킹)</button>
+        <button class="mg-chip" type="button" data-mg-category="전자금융(보안카드·OTP)" data-mg-category-num="14" title="공식 분류: 전자금융(보안카드,OTP,스마트OTP, 디지털OTP)">전자금융(보안카드·OTP)</button>
+        <button class="mg-chip" type="button" data-mg-category="전자금융(인증서)" data-mg-category-num="15">전자금융(인증서)</button>
+        <button class="mg-chip" type="button" data-mg-category="전자금융(기타)" data-mg-category-num="16">전자금융(기타)</button>
+        <button class="mg-chip" type="button" data-mg-category="카드" data-mg-category-num="17">카드</button>
+        <button class="mg-chip" type="button" data-mg-category="자동화기기" data-mg-category-num="18">자동화기기</button>
+        <button class="mg-chip" type="button" data-mg-category="여신" data-mg-category-num="19">여신</button>
+        <button class="mg-chip" type="button" data-mg-category="수표" data-mg-category-num="20">수표</button>
+        <button class="mg-chip" type="button" data-mg-category="기타(부가서비스)" data-mg-category-num="21">기타(부가서비스)</button>
+      </div>
+
+      <div class="mg-live-box" id="mgCategoryLinkBox">
+        <strong id="mgSelectedCategory">전체보기</strong>
+        <p>선택한 분류의 공식 FAQ 페이지로 연결됩니다.</p>
+        <a id="mgOfficialCategoryLink" class="official-link" href="https://www.kfcc.co.kr/customer/cus0101.do?categorynum=0&currentPageNo=1&pageNo=1&pageRows=10&pageUnit=10&seq=0" target="_blank" rel="noopener noreferrer">선택 분류 공식 FAQ 열기 ↗</a>
+      </div>
+
+      <div class="result-head">
+        <h2 class="result-title">최근 등록 FAQ</h2>
+        <div id="mgResultCount" class="count">총 10건</div>
+      </div>
+
+      <div class="mg-faq-list">
+        <div class="mg-faq-item" data-mg-category="카드" data-mg-category-num="17">
+          <div class="mg-num">602</div>
+          <div class="mg-faq-content">
+            <div class="mg-q">체크카드의 한도는 정해져 있나요?</div>
+            <div class="mg-answer-row">
+              <span class="mg-answer-label">답변은 MG새마을금고 공식 FAQ에서 원문으로 확인합니다.</span>
+              <a class="mg-answer-link" href="https://www.kfcc.co.kr/customer/cus0101.do?categorynum=17&currentPageNo=1&pageNo=1&pageRows=10&pageUnit=10&seq=0" target="_blank" rel="noopener noreferrer">카드 FAQ에서 확인 ↗</a>
+            </div>
+          </div>
+        </div>
+        <div class="mg-faq-item" data-mg-category="카드" data-mg-category-num="17">
+          <div class="mg-num">601</div>
+          <div class="mg-faq-content">
+            <div class="mg-q">해외사용에 대한 이의신청은 어떻게 하나요?</div>
+            <div class="mg-answer-row">
+              <span class="mg-answer-label">답변은 MG새마을금고 공식 FAQ에서 원문으로 확인합니다.</span>
+              <a class="mg-answer-link" href="https://www.kfcc.co.kr/customer/cus0101.do?categorynum=17&currentPageNo=1&pageNo=1&pageRows=10&pageUnit=10&seq=0" target="_blank" rel="noopener noreferrer">카드 FAQ에서 확인 ↗</a>
+            </div>
+          </div>
+        </div>
+        <div class="mg-faq-item" data-mg-category="카드" data-mg-category-num="17">
+          <div class="mg-num">600</div>
+          <div class="mg-faq-content">
+            <div class="mg-q">해외가맹점에서 원화로 결제되는 것을 원하지 않을 경우 어떻게 해야하나요?</div>
+            <div class="mg-answer-row">
+              <span class="mg-answer-label">답변은 MG새마을금고 공식 FAQ에서 원문으로 확인합니다.</span>
+              <a class="mg-answer-link" href="https://www.kfcc.co.kr/customer/cus0101.do?categorynum=17&currentPageNo=1&pageNo=1&pageRows=10&pageUnit=10&seq=0" target="_blank" rel="noopener noreferrer">카드 FAQ에서 확인 ↗</a>
+            </div>
+          </div>
+        </div>
+        <div class="mg-faq-item" data-mg-category="카드" data-mg-category-num="17">
+          <div class="mg-num">599</div>
+          <div class="mg-faq-content">
+            <div class="mg-q">해외에서도 계좌잔액이 부족하면 소액신용결제가 가능한가요?</div>
+            <div class="mg-answer-row">
+              <span class="mg-answer-label">답변은 MG새마을금고 공식 FAQ에서 원문으로 확인합니다.</span>
+              <a class="mg-answer-link" href="https://www.kfcc.co.kr/customer/cus0101.do?categorynum=17&currentPageNo=1&pageNo=1&pageRows=10&pageUnit=10&seq=0" target="_blank" rel="noopener noreferrer">카드 FAQ에서 확인 ↗</a>
+            </div>
+          </div>
+        </div>
+        <div class="mg-faq-item" data-mg-category="카드" data-mg-category-num="17">
+          <div class="mg-num">598</div>
+          <div class="mg-faq-content">
+            <div class="mg-q">승인취소와 매출취소의 차이점은 무엇인가요?</div>
+            <div class="mg-answer-row">
+              <span class="mg-answer-label">답변은 MG새마을금고 공식 FAQ에서 원문으로 확인합니다.</span>
+              <a class="mg-answer-link" href="https://www.kfcc.co.kr/customer/cus0101.do?categorynum=17&currentPageNo=1&pageNo=1&pageRows=10&pageUnit=10&seq=0" target="_blank" rel="noopener noreferrer">카드 FAQ에서 확인 ↗</a>
+            </div>
+          </div>
+        </div>
+        <div class="mg-faq-item" data-mg-category="카드" data-mg-category-num="17">
+          <div class="mg-num">597</div>
+          <div class="mg-faq-content">
+            <div class="mg-q">체크카드가 정상인데 해외에서 사용이 되지 않습니다.</div>
+            <div class="mg-answer-row">
+              <span class="mg-answer-label">답변은 MG새마을금고 공식 FAQ에서 원문으로 확인합니다.</span>
+              <a class="mg-answer-link" href="https://www.kfcc.co.kr/customer/cus0101.do?categorynum=17&currentPageNo=1&pageNo=1&pageRows=10&pageUnit=10&seq=0" target="_blank" rel="noopener noreferrer">카드 FAQ에서 확인 ↗</a>
+            </div>
+          </div>
+        </div>
+        <div class="mg-faq-item" data-mg-category="카드" data-mg-category-num="17">
+          <div class="mg-num">596</div>
+          <div class="mg-faq-content">
+            <div class="mg-q">온라인 해외사이트에서 카드 결제가 계속 거절되는데 어떻게 해야 하나요?</div>
+            <div class="mg-answer-row">
+              <span class="mg-answer-label">답변은 MG새마을금고 공식 FAQ에서 원문으로 확인합니다.</span>
+              <a class="mg-answer-link" href="https://www.kfcc.co.kr/customer/cus0101.do?categorynum=17&currentPageNo=1&pageNo=1&pageRows=10&pageUnit=10&seq=0" target="_blank" rel="noopener noreferrer">카드 FAQ에서 확인 ↗</a>
+            </div>
+          </div>
+        </div>
+        <div class="mg-faq-item" data-mg-category="카드" data-mg-category-num="17">
+          <div class="mg-num">595</div>
+          <div class="mg-faq-content">
+            <div class="mg-q">해외 거래 취소 시 유의사항은 어떻게 되나요?</div>
+            <div class="mg-answer-row">
+              <span class="mg-answer-label">답변은 MG새마을금고 공식 FAQ에서 원문으로 확인합니다.</span>
+              <a class="mg-answer-link" href="https://www.kfcc.co.kr/customer/cus0101.do?categorynum=17&currentPageNo=1&pageNo=1&pageRows=10&pageUnit=10&seq=0" target="_blank" rel="noopener noreferrer">카드 FAQ에서 확인 ↗</a>
+            </div>
+          </div>
+        </div>
+        <div class="mg-faq-item" data-mg-category="카드" data-mg-category-num="17">
+          <div class="mg-num">594</div>
+          <div class="mg-faq-content">
+            <div class="mg-q">해외사용 내역에 환율이 너무 높게 적용된 것 같습니다. 어떤 환율이 적용된 것입니까?</div>
+            <div class="mg-answer-row">
+              <span class="mg-answer-label">답변은 MG새마을금고 공식 FAQ에서 원문으로 확인합니다.</span>
+              <a class="mg-answer-link" href="https://www.kfcc.co.kr/customer/cus0101.do?categorynum=17&currentPageNo=1&pageNo=1&pageRows=10&pageUnit=10&seq=0" target="_blank" rel="noopener noreferrer">카드 FAQ에서 확인 ↗</a>
+            </div>
+          </div>
+        </div>
+        <div class="mg-faq-item" data-mg-category="카드" data-mg-category-num="17">
+          <div class="mg-num">593</div>
+          <div class="mg-faq-content">
+            <div class="mg-q">해외에서 이용한 가맹점 정보를 확인할 수 있나요?</div>
+            <div class="mg-answer-row">
+              <span class="mg-answer-label">답변은 MG새마을금고 공식 FAQ에서 원문으로 확인합니다.</span>
+              <a class="mg-answer-link" href="https://www.kfcc.co.kr/customer/cus0101.do?categorynum=17&currentPageNo=1&pageNo=1&pageRows=10&pageUnit=10&seq=0" target="_blank" rel="noopener noreferrer">카드 FAQ에서 확인 ↗</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="mgEmpty" class="empty" hidden>
+        <strong>선택한 분류의 현재 노출 FAQ가 없습니다.</strong>
+        전체 공식 FAQ는 MG새마을금고 공식 페이지에서 확인해 주세요.
+      </div>
+
+      <div class="mg-live-box"><strong>왜 답변을 그대로 넣지 않았나요?</strong><p>공식 FAQ의 공개 목록에서는 질문 제목은 확인되지만 상세 답변 본문은 목록 HTML에 직접 노출되지 않습니다. 따라서 검증되지 않은 내용을 답변처럼 생성하지 않고, 각 질문에서 공식 원문으로 바로 이동하도록 연결했습니다.</p></div>
+
+      <div class="source-note">※ 새마을금고 탭은 MG새마을금고 공식 고객센터 FAQ 페이지에 공개된 분류, 최근 질문 제목 및 고객센터 안내를 반영합니다. 상세 답변은 검증 가능한 공식 원문으로 연결하며, 확인되지 않은 답변을 임의로 생성하지 않습니다.</div>
     </section>
   </main>
 
   <script>
-    // 첨부된 FAQ초안_합성자료.json의 데이터만 사용합니다.
+    // 첨부 JSON의 FAQ 데이터만 사용합니다.
     const faqData = [
-      { category: "교육", question: "교육 신청은 어디에서 하나요?", answer: "교육 포털의 과정 검색 후 신청 메뉴를 사용합니다." },
-      { category: "교육", question: "신청한 교육을 취소하려면 어떻게 하나요?", answer: "신청내역에서 취소 가능 여부를 확인합니다." },
-      { category: "문서", question: "주간 업무보고에는 무엇을 넣어야 하나요?", answer: "주요 실적, 이슈, 다음 주 계획을 중심으로 작성합니다." },
-      { category: "IT", question: "사내 시스템 접속이 되지 않습니다.", answer: "네트워크, 브라우저, 계정 상태를 순서대로 확인합니다." },
-      { category: "보안", question: "ChatGPT에 내부 업무자료를 넣어도 되나요?", answer: "교육에서는 합성자료를 사용하고, 실제 자료는 조직의 보안 및 AI 사용 기준을 먼저 확인합니다." }
+      {
+        category: "교육",
+        question: "교육 신청은 어디에서 하나요?",
+        answer_seed: "교육 포털의 과정 검색 후 신청 메뉴를 사용합니다."
+      },
+      {
+        category: "교육",
+        question: "신청한 교육을 취소하려면 어떻게 하나요?",
+        answer_seed: "신청내역에서 취소 가능 여부를 확인합니다."
+      },
+      {
+        category: "문서",
+        question: "주간 업무보고에는 무엇을 넣어야 하나요?",
+        answer_seed: "주요 실적, 이슈, 다음 주 계획을 중심으로 작성합니다."
+      },
+      {
+        category: "IT",
+        question: "사내 시스템 접속이 되지 않습니다.",
+        answer_seed: "네트워크, 브라우저, 계정 상태를 순서대로 확인합니다."
+      },
+      {
+        category: "보안",
+        question: "ChatGPT에 내부 업무자료를 넣어도 되나요?",
+        answer_seed: "교육에서는 합성자료를 사용하고, 실제 자료는 조직의 보안 및 AI 사용 기준을 먼저 확인합니다."
+      }
     ];
 
     const searchInput = document.getElementById("searchInput");
-    const clearButton = document.getElementById("clearButton");
-    const viewAllButton = document.getElementById("viewAllButton");
-    const filters = document.getElementById("filters");
+    const resetBtn = document.getElementById("resetBtn");
+    const faqList = document.getElementById("faqList");
     const resultCount = document.getElementById("resultCount");
-    const resultList = document.getElementById("resultList");
+    const filterButtons = [...document.querySelectorAll(".filter-btn")];
+
     let selectedCategory = "전체";
 
-    function normalize(value) {
-      return value.trim().toLocaleLowerCase("ko-KR");
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
-    function appendHighlightedText(element, text, keyword) {
-      const normalizedKeyword = normalize(keyword);
-      if (!normalizedKeyword) {
-        element.textContent = text;
-        return;
-      }
-
-      const lowerText = text.toLocaleLowerCase("ko-KR");
-      let cursor = 0;
-      let foundAt = lowerText.indexOf(normalizedKeyword);
-
-      while (foundAt !== -1) {
-        element.append(document.createTextNode(text.slice(cursor, foundAt)));
-        const mark = document.createElement("mark");
-        mark.textContent = text.slice(foundAt, foundAt + normalizedKeyword.length);
-        element.append(mark);
-        cursor = foundAt + normalizedKeyword.length;
-        foundAt = lowerText.indexOf(normalizedKeyword, cursor);
-      }
-      element.append(document.createTextNode(text.slice(cursor)));
+    function escapeRegExp(text) {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     }
 
-    function makeCard(item, keyword) {
-      const article = document.createElement("article");
-      article.className = "faq-card";
+    function highlight(text, keyword) {
+      const safeText = escapeHtml(text);
+      const words = keyword.trim().split(/\s+/).filter(Boolean);
+      if (!words.length) return safeText;
 
-      const top = document.createElement("div");
-      top.className = "card-top";
+      const pattern = words.map(escapeRegExp).join("|");
+      const regex = new RegExp(`(${pattern})`, "gi");
+      return safeText.replace(regex, "<mark>$1</mark>");
+    }
 
-      const qMark = document.createElement("span");
-      qMark.className = "q-mark";
-      qMark.textContent = "Q";
-      qMark.setAttribute("aria-hidden", "true");
+    function getFilteredData() {
+      const keyword = searchInput.value.trim().toLowerCase();
 
-      const question = document.createElement("h3");
-      question.className = "question";
-      appendHighlightedText(question, item.question, keyword);
+      return faqData.filter(item => {
+        const matchesCategory = selectedCategory === "전체" || item.category === selectedCategory;
+        if (!matchesCategory) return false;
 
-      const badge = document.createElement("span");
-      badge.className = "category-badge";
-      appendHighlightedText(badge, item.category, keyword);
+        if (!keyword) return true;
 
-      const answer = document.createElement("p");
-      answer.className = "answer";
-      appendHighlightedText(answer, item.answer, keyword);
-
-      top.append(qMark, question, badge);
-      article.append(top, answer);
-      return article;
+        const searchableText = `${item.question} ${item.answer_seed} ${item.category}`.toLowerCase();
+        const terms = keyword.split(/\s+/).filter(Boolean);
+        return terms.every(term => searchableText.includes(term));
+      });
     }
 
     function render() {
-      const rawKeyword = searchInput.value;
-      const keyword = normalize(rawKeyword);
-      const matches = faqData.filter((item) => {
-        const categoryMatches = selectedCategory === "전체" || item.category === selectedCategory;
-        const searchableText = `${item.question} ${item.answer} ${item.category}`.toLocaleLowerCase("ko-KR");
-        return categoryMatches && (!keyword || searchableText.includes(keyword));
-      });
+      const keyword = searchInput.value.trim();
+      const filtered = getFilteredData();
 
-      clearButton.hidden = rawKeyword.length === 0;
-      resultCount.innerHTML = `총 <strong>${matches.length}</strong>건`;
-      resultList.replaceChildren();
+      resultCount.textContent = `총 ${filtered.length}건`;
 
-      if (matches.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.innerHTML = `
-          <div class="empty-icon" aria-hidden="true">?</div>
-          <strong>등록된 FAQ에서 답변을 찾을 수 없습니다.</strong>
-          <p>관련 담당부서 또는 공식 안내자료를 확인해 주세요.</p>
+      if (filtered.length === 0) {
+        faqList.innerHTML = `
+          <div class="empty">
+            <strong>등록된 FAQ에서 답변을 찾을 수 없습니다.</strong>
+            관련 담당부서 또는 공식 안내자료를 확인해 주세요.
+          </div>
         `;
-        resultList.append(empty);
         return;
       }
 
-      const fragment = document.createDocumentFragment();
-      matches.forEach((item) => fragment.append(makeCard(item, rawKeyword)));
-      resultList.append(fragment);
-    }
-
-    function selectCategory(category) {
-      selectedCategory = category;
-      filters.querySelectorAll(".filter-button").forEach((button) => {
-        const isActive = button.dataset.category === category;
-        button.classList.toggle("active", isActive);
-        button.setAttribute("aria-pressed", String(isActive));
-      });
-      render();
+      faqList.innerHTML = filtered.map(item => `
+        <article class="faq-card">
+          <div class="faq-top">
+            <h3 class="question">${highlight(item.question, keyword)}</h3>
+            <span class="category">${highlight(item.category, keyword)}</span>
+          </div>
+          <p class="answer">${highlight(item.answer_seed, keyword)}</p>
+        </article>
+      `).join("");
     }
 
     searchInput.addEventListener("input", render);
-    filters.addEventListener("click", (event) => {
-      const button = event.target.closest(".filter-button");
-      if (button) selectCategory(button.dataset.category);
+
+    filterButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        selectedCategory = button.dataset.category;
+        filterButtons.forEach(btn => btn.classList.toggle("active", btn === button));
+        render();
+      });
     });
 
-    clearButton.addEventListener("click", () => {
+    resetBtn.addEventListener("click", () => {
       searchInput.value = "";
+      selectedCategory = "전체";
+      filterButtons.forEach(btn => btn.classList.toggle("active", btn.dataset.category === "전체"));
       searchInput.focus();
       render();
     });
 
-    viewAllButton.addEventListener("click", () => {
-      searchInput.value = "";
-      selectCategory("전체");
-      searchInput.focus();
+
+    const tabButtons = [...document.querySelectorAll(".tab-btn")];
+    const internalTab = document.getElementById("internalTab");
+    const mgTab = document.getElementById("mgTab");
+
+    tabButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const isInternal = button.dataset.tab === "internal";
+        tabButtons.forEach(btn => btn.classList.toggle("active", btn === button));
+        internalTab.hidden = !isInternal;
+        mgTab.hidden = isInternal;
+      });
     });
 
+
+    const mgCategoryButtons = [...document.querySelectorAll(".mg-chip")];
+    const mgFaqItems = [...document.querySelectorAll(".mg-faq-item")];
+    const mgResultCount = document.getElementById("mgResultCount");
+    const mgEmpty = document.getElementById("mgEmpty");
+    const mgSelectedCategory = document.getElementById("mgSelectedCategory");
+    const mgOfficialCategoryLink = document.getElementById("mgOfficialCategoryLink");
+
+    function getMgOfficialUrl(categoryNum) {
+      const base = "https://www.kfcc.co.kr/customer/cus0101.do";
+      const params = new URLSearchParams({
+        categorynum: String(categoryNum),
+        currentPageNo: "1",
+        pageNo: "1",
+        pageRows: "10",
+        pageUnit: "10",
+        seq: "0"
+      });
+      return `${base}?${params.toString()}`;
+    }
+
+    function filterMgFaq(category, categoryNum) {
+      // 앱 내부에는 공식 페이지의 최근 공개 질문 중 카드 분류 10건만 보관합니다.
+      // 다른 분류를 선택하면 임의 데이터를 만들지 않고 공식 분류 페이지로 연결합니다.
+      let visibleCount = 0;
+
+      mgFaqItems.forEach(item => {
+        const matches = category === "전체보기" || item.dataset.mgCategory === category;
+        item.hidden = !matches;
+        if (matches) visibleCount += 1;
+      });
+
+      mgCategoryButtons.forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.mgCategory === category);
+      });
+
+      mgSelectedCategory.textContent = `${category} · 공식 FAQ`;
+      mgOfficialCategoryLink.href = getMgOfficialUrl(categoryNum);
+      mgOfficialCategoryLink.textContent = `${category} 공식 FAQ 열기 ↗`;
+
+      mgResultCount.textContent = `앱 내 표시 ${visibleCount}건`;
+      mgEmpty.hidden = visibleCount !== 0;
+      if (visibleCount === 0) {
+        mgEmpty.innerHTML = `
+          <strong>이 분류의 FAQ는 공식 페이지에서 확인해 주세요.</strong>
+          앱에서 임의 답변을 생성하지 않고, 선택한 분류의 MG새마을금고 공식 FAQ로 연결합니다.
+        `;
+      }
+    }
+
+    mgCategoryButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const category = button.dataset.mgCategory;
+        const categoryNum = button.dataset.mgCategoryNum;
+        filterMgFaq(category, categoryNum);
+
+        // 사용자가 분류 탭을 직접 클릭한 경우 해당 공식 분류 페이지를 새 탭으로 엽니다.
+        window.open(getMgOfficialUrl(categoryNum), "_blank", "noopener,noreferrer");
+      });
+    });
+
+    filterMgFaq("전체보기", 0);
     render();
   </script>
 </body>
