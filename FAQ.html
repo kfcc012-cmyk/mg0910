@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>업무 FAQ 검색</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --text: #172033;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #1f6feb;
+      --primary-soft: #eaf2ff;
+      --highlight: #fff2a8;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .app {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 56px 20px 72px;
+    }
+
+    .header {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 24px;
+      padding: 30px 32px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #1558b0 0%, #1f6feb 58%, #5b8def 100%);
+      color: #fff;
+      box-shadow: 0 18px 40px rgba(31, 111, 235, 0.20);
+    }
+
+    .header::after {
+      content: "?";
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-52%);
+      font-size: clamp(72px, 12vw, 120px);
+      font-weight: 900;
+      line-height: 1;
+      color: rgba(255,255,255,0.10);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    .title {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 8px;
+      font-size: clamp(34px, 5vw, 48px);
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      line-height: 1.15;
+    }
+
+    .title-accent {
+      color: #fff3a3;
+    }
+
+    .subtitle {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      color: rgba(255,255,255,0.88);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8a94a6;
+      pointer-events: none;
+      font-size: 18px;
+    }
+
+    #searchInput {
+      width: 100%;
+      height: 52px;
+      border: 1px solid #d7dce3;
+      border-radius: 12px;
+      padding: 0 16px 0 46px;
+      font-size: 16px;
+      outline: none;
+      transition: .2s ease;
+      background: #fff;
+    }
+
+    #searchInput:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(31, 111, 235, .10);
+    }
+
+    .reset-btn {
+      height: 52px;
+      padding: 0 18px;
+      border: 1px solid #d7dce3;
+      border-radius: 12px;
+      background: #fff;
+      color: #344054;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .reset-btn:hover { background: #f8fafc; }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .filter-btn {
+      border: 1px solid #d7dce3;
+      background: #fff;
+      color: #4b5563;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .filter-btn:hover { border-color: #aab2bf; }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .result-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 28px 2px 12px;
+    }
+
+    .result-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .count {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .faq-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      transition: .2s ease;
+    }
+
+    .faq-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .faq-top {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .question {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.55;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .answer {
+      margin: 0;
+      color: #475467;
+      font-size: 15px;
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .category {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    mark {
+      background: var(--highlight);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+
+    .empty {
+      background: var(--surface);
+      border: 1px dashed #cfd5de;
+      border-radius: 14px;
+      padding: 42px 24px;
+      text-align: center;
+      color: #667085;
+      line-height: 1.8;
+    }
+
+    .empty strong {
+      display: block;
+      color: #344054;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+
+    .data-note {
+      margin-top: 20px;
+      color: #8a94a6;
+      font-size: 12px;
+      text-align: right;
+    }
+
+    /* Tablet */
+    @media (max-width: 900px) {
+      .app {
+        max-width: 100%;
+        padding: 40px 24px 56px;
+      }
+
+      .panel { padding: 18px; }
+      .faq-card { padding: 18px; }
+    }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      .app {
+        padding: 28px 14px 40px;
+      }
+
+      .header { margin-bottom: 18px; }
+
+      .title {
+        font-size: 28px;
+        line-height: 1.2;
+      }
+
+      .subtitle {
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .panel {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .search-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      #searchInput {
+        height: 50px;
+        font-size: 16px;
+      }
+
+      .reset-btn {
+        width: 100%;
+        height: 46px;
+      }
+
+      .filters {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .filters::-webkit-scrollbar { display: none; }
+
+      .filter-btn {
+        flex: 0 0 auto;
+        min-height: 40px;
+        padding: 9px 14px;
+      }
+
+      .result-head {
+        margin-top: 22px;
+        align-items: flex-end;
+      }
+
+      .result-title { font-size: 16px; }
+      .count { font-size: 13px; }
+
+      .faq-card {
+        padding: 16px;
+        border-radius: 12px;
+      }
+
+      .faq-top {
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+
+      .question {
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .answer {
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      .category { align-self: flex-start; }
+
+      .empty {
+        padding: 32px 18px;
+        font-size: 14px;
+      }
+
+      .data-note {
+        text-align: left;
+        line-height: 1.5;
+      }
+    }
+
+    /* Small mobile */
+    @media (max-width: 380px) {
+      .app { padding-left: 10px; padding-right: 10px; }
+      .title { font-size: 25px; }
+      .panel { padding: 12px; }
+      .faq-card { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1 class="title">업무 FAQ 검색</h1>
+      <p class="subtitle">등록된 FAQ 데이터에서 질문과 답변을 빠르게 찾아보세요.</p>
+    </header>
+
+    <section class="panel" aria-label="FAQ 검색 영역">
+      <div class="search-row">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input id="searchInput" type="search" placeholder="질문이나 키워드를 입력하세요." autocomplete="off" aria-label="FAQ 검색어" />
+        </div>
+        <button id="resetBtn" class="reset-btn" type="button">전체보기</button>
+      </div>
+
+      <div class="filters" aria-label="분류 필터">
+        <button class="filter-btn active" data-category="전체" type="button">전체</button>
+        <button class="filter-btn" data-category="교육" type="button">교육</button>
+        <button class="filter-btn" data-category="문서" type="button">문서</button>
+        <button class="filter-btn" data-category="IT" type="button">IT</button>
+        <button class="filter-btn" data-category="보안" type="button">보안</button>
+      </div>
+    </section>
+
+    <div class="result-head">
+      <h2 class="result-title">검색 결과</h2>
+      <div id="resultCount" class="count" aria-live="polite"></div>
+    </div>
+
+    <section id="faqList" class="list" aria-live="polite"></section>
+    <div class="data-note">※ 본 화면은 등록된 FAQ 데이터만 표시하며, 미등록 답변을 생성하지 않습니다.</div>
+  </main>
+
+  <script>
+    // 첨부 JSON의 FAQ 데이터만 사용합니다.
+    const faqData = [
+      {
+        category: "교육",
+        question: "교육 신청은 어디에서 하나요?",
+        answer_seed: "교육 포털의 과정 검색 후 신청 메뉴를 사용합니다."
+      },
+      {
+        category: "교육",
+        question: "신청한 교육을 취소하려면 어떻게 하나요?",
+        answer_seed: "신청내역에서 취소 가능 여부를 확인합니다."
+      },
+      {
+        category: "문서",
+        question: "주간 업무보고에는 무엇을 넣어야 하나요?",
+        answer_seed: "주요 실적, 이슈, 다음 주 계획을 중심으로 작성합니다."
+      },
+      {
+        category: "IT",
+        question: "사내 시스템 접속이 되지 않습니다.",
+        answer_seed: "네트워크, 브라우저, 계정 상태를 순서대로 확인합니다."
+      },
+      {
+        category: "보안",
+        question: "ChatGPT에 내부 업무자료를 넣어도 되나요?",
+        answer_seed: "교육에서는 합성자료를 사용하고, 실제 자료는 조직의 보안 및 AI 사용 기준을 먼저 확인합니다."
+      }
+    ];
+
+    const searchInput = document.getElementById("searchInput");
+    const resetBtn = document.getElementById("resetBtn");
+    const faqList = document.getElementById("faqList");
+    const resultCount = document.getElementById("resultCount");
+    const filterButtons = [...document.querySelectorAll(".filter-btn")];
+
+    let selectedCategory = "전체";
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function escapeRegExp(text) {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function highlight(text, keyword) {
+      const safeText = escapeHtml(text);
+      const words = keyword.trim().split(/\s+/).filter(Boolean);
+      if (!words.length) return safeText;
+
+      const pattern = words.map(escapeRegExp).join("|");
+      const regex = new RegExp(`(${pattern})`, "gi");
+      return safeText.replace(regex, "<mark>$1</mark>");
+    }
+
+    function getFilteredData() {
+      const keyword = searchInput.value.trim().toLowerCase();
+
+      return faqData.filter(item => {
+        const matchesCategory = selectedCategory === "전체" || item.category === selectedCategory;
+        if (!matchesCategory) return false;
+
+        if (!keyword) return true;
+
+        const searchableText = `${item.question} ${item.answer_seed} ${item.category}`.toLowerCase();
+        const terms = keyword.split(/\s+/).filter(Boolean);
+        return terms.every(term => searchableText.includes(term));
+      });
+    }
+
+    function render() {
+      const keyword = searchInput.value.trim();
+      const filtered = getFilteredData();
+
+      resultCount.textContent = `총 ${filtered.length}건`;
+
+      if (filtered.length === 0) {
+        faqList.innerHTML = `
+          <div class="empty">
+            <strong>등록된 FAQ에서 답변을 찾을 수 없습니다.</strong>
+            관련 담당부서 또는 공식 안내자료를 확인해 주세요.
+          </div>
+        `;
+        return;
+      }
+
+      faqList.innerHTML = filtered.map(item => `
+        <article class="faq-card">
+          <div class="faq-top">
+            <h3 class="question">${highlight(item.question, keyword)}</h3>
+            <span class="category">${highlight(item.category, keyword)}</span>
+          </div>
+          <p class="answer">${highlight(item.answer_seed, keyword)}</p>
+        </article>
+      `).join("");
+    }
+
+    searchInput.addEventListener("input", render);
+
+    filterButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        selectedCategory = button.dataset.category;
+        filterButtons.forEach(btn => btn.classList.toggle("active", btn === button));
+        render();
+      });
+    });
+
+    resetBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      selectedCategory = "전체";
+      filterButtons.forEach(btn => btn.classList.toggle("active", btn.dataset.category === "전체"));
+      searchInput.focus();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
