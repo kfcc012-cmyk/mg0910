@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MG 맞춤형 대출 상환 계산기</title>
+  <style>
+    :root {
+      --mg-blue: #005bac;
+      --mg-blue-dark: #003d7a;
+      --mg-blue-light: #eaf4fc;
+      --mg-blue-soft: #f5f9fd;
+      --mg-accent: #1693e6;
+      --text-main: #182433;
+      --text-sub: #667586;
+      --text-muted: #8b98a7;
+      --border: #dce5ed;
+      --border-strong: #c7d4df;
+      --white: #ffffff;
+      --danger: #d9485f;
+      --shadow: 0 12px 32px rgba(20, 58, 88, 0.08);
+      --radius-lg: 20px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Pretendard, "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-main);
+      background: linear-gradient(180deg, #eaf4fc 0, #f5f8fb 340px, #f3f7fa 100%);
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .page {
+      width: min(1320px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 42px 0 64px;
+    }
+
+    .header { margin-bottom: 28px; }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      color: var(--mg-blue);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9px;
+      background: var(--mg-blue);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+      box-shadow: 0 6px 16px rgba(0, 91, 172, 0.18);
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 900;
+      line-height: 1.2;
+      letter-spacing: -1.7px;
+    }
+
+    .header p {
+      margin: 13px 0 0;
+      color: var(--text-sub);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .calculator-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid rgba(216, 228, 238, 0.9);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .input-panel {
+      padding: 26px;
+      position: sticky;
+      top: 20px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+
+    .panel-step {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--mg-blue-light);
+      color: var(--mg-blue);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .form-group { margin-bottom: 24px; }
+
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      color: #34475a;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .form-label .hint {
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      height: 54px;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      transition: 0.2s;
+    }
+
+    .input-wrap:focus-within {
+      border-color: var(--mg-blue);
+      box-shadow: 0 0 0 4px rgba(0, 91, 172, 0.1);
+    }
+
+    .input-wrap input {
+      min-width: 0;
+      flex: 1;
+      height: 100%;
+      padding: 0 16px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .input-unit {
+      flex-shrink: 0;
+      padding: 0 15px;
+      color: var(--text-sub);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .quick-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 9px;
+    }
+
+    .quick-btn {
+      min-height: 40px;
+      border: 1px solid #cfe0ed;
+      border-radius: 10px;
+      background: #f6fafe;
+      color: var(--mg-blue-dark);
+      font-size: 13px;
+      font-weight: 800;
+      transition: 0.18s;
+    }
+
+    .quick-btn:hover {
+      background: var(--mg-blue-light);
+      border-color: #a8cae4;
+      transform: translateY(-1px);
+    }
+
+    .range-box { margin-top: 14px; }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--mg-blue);
+      cursor: pointer;
+    }
+
+    .range-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .term-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 112px;
+      gap: 10px;
+    }
+
+    .select-wrap select {
+      width: 100%;
+      height: 54px;
+      padding: 0 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--text-main);
+      font-weight: 800;
+    }
+
+    .repayment-options {
+      display: grid;
+      gap: 8px;
+    }
+
+    .radio-card { position: relative; }
+
+    .radio-card input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .radio-card label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 58px;
+      padding: 11px 13px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+      transition: 0.18s;
+    }
+
+    .radio-card label:hover {
+      border-color: #a8c8df;
+      background: #fbfdff;
+    }
+
+    .radio-indicator {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #bac8d4;
+      border-radius: 50%;
+    }
+
+    .radio-indicator::after {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--mg-blue);
+      transform: scale(0);
+      transition: 0.15s;
+    }
+
+    .radio-text {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .radio-text strong { font-size: 14px; }
+
+    .radio-text small {
+      color: var(--text-sub);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .radio-card input:checked + label {
+      border-color: var(--mg-blue);
+      background: var(--mg-blue-soft);
+      box-shadow: inset 0 0 0 1px var(--mg-blue);
+    }
+
+    .radio-card input:checked + label .radio-indicator {
+      border-color: var(--mg-blue);
+    }
+
+    .radio-card input:checked + label .radio-indicator::after {
+      transform: scale(1);
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .calculate-btn {
+      height: 56px;
+      border: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--mg-blue), #0873c6);
+      color: white;
+      font-size: 16px;
+      font-weight: 900;
+      box-shadow: 0 10px 22px rgba(0, 91, 172, 0.22);
+    }
+
+    .calculate-btn:hover { transform: translateY(-1px); }
+
+    .reset-btn {
+      width: 70px;
+      height: 56px;
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      background: white;
+      color: var(--text-sub);
+      font-weight: 800;
+    }
+
+    .result-area { min-width: 0; }
+
+    .summary-card {
+      padding: 28px;
+      margin-bottom: 20px;
+      border: 0;
+      color: white;
+      background:
+        radial-gradient(circle at right top, rgba(255, 255, 255, 0.17), transparent 28%),
+        linear-gradient(135deg, #003f7d, #0068bb 70%, #0081cf);
+      box-shadow: 0 16px 36px rgba(0, 71, 132, 0.2);
+    }
+
+    .summary-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .summary-head h2 {
+      display: flex;
+      align-items: center;
+      margin: 0;
+      color: #fff;
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1.2;
+      letter-spacing: -1.2px;
+    }
+
+    .summary-head h2::before {
+      content: "";
+      display: inline-block;
+      flex-shrink: 0;
+      width: 5px;
+      height: 27px;
+      margin-right: 11px;
+      border-radius: 4px;
+      background: #7ed0ff;
+      box-shadow: 0 0 12px rgba(126, 208, 255, 0.4);
+    }
+
+    .summary-head p {
+      margin: 8px 0 0;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 13px;
+    }
+
+    .method-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .summary-item {
+      padding: 18px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .summary-item .label {
+      display: block;
+      margin-bottom: 8px;
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .summary-item strong {
+      display: block;
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 900;
+      line-height: 1.2;
+      letter-spacing: -1px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .summary-item strong span:last-child {
+      margin-left: 3px;
+      font-size: 14px;
+      font-weight: 700;
+      opacity: 0.8;
+    }
+
+    .mini-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      margin-top: 15px;
+      overflow: hidden;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .mini-summary > div {
+      padding: 14px 16px;
+      background: rgba(0, 40, 76, 0.17);
+    }
+
+    .mini-summary small {
+      display: block;
+      margin-bottom: 5px;
+      color: rgba(255, 255, 255, 0.66);
+      font-size: 11px;
+    }
+
+    .mini-summary b {
+      font-size: 14px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .schedule-card { overflow: hidden; }
+
+    .schedule-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .schedule-head h2 {
+      margin: 0;
+      color: #22374a;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.6px;
+    }
+
+    .schedule-head p {
+      margin: 6px 0 0;
+      color: var(--text-sub);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .table-count {
+      flex-shrink: 0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--mg-blue-light);
+      color: var(--mg-blue);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .table-scroll {
+      width: 100%;
+      max-height: 680px;
+      overflow-x: auto;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 860px;
+      table-layout: fixed;
+      border-collapse: collapse;
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th:nth-child(1), td:nth-child(1) { width: 9%; }
+    th:nth-child(2), td:nth-child(2) { width: 22%; }
+    th:nth-child(3), td:nth-child(3) { width: 19%; }
+    th:nth-child(4), td:nth-child(4) { width: 24%; }
+    th:nth-child(5), td:nth-child(5) { width: 26%; }
+
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+
+    th {
+      height: 54px;
+      padding: 0 24px;
+      border-bottom: 1px solid #d4e0e9;
+      background: #f0f5f8;
+      color: #455b6f;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: right;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    th:first-child { text-align: center; }
+
+    td {
+      height: 60px;
+      padding: 0 24px;
+      border-bottom: 1px solid #e6edf2;
+      color: #34485a;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: right;
+      vertical-align: middle;
+      white-space: nowrap;
+      letter-spacing: -0.15px;
+    }
+
+    td:first-child {
+      text-align: center;
+      color: #728292;
+      font-weight: 700;
+    }
+
+    td:nth-child(2) {
+      color: #334d63;
+      font-weight: 700;
+    }
+
+    td:nth-child(3) {
+      color: #7a6145;
+      font-weight: 600;
+    }
+
+    td:nth-child(4) {
+      color: var(--mg-blue-dark);
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    td:nth-child(5) {
+      color: #526779;
+      font-weight: 700;
+    }
+
+    tbody tr {
+      transition: background-color 0.15s ease;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #fafcfd;
+    }
+
+    tbody tr:hover {
+      background: #edf6fc;
+    }
+
+    tbody tr:last-child {
+      background: #f1f7fc;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+      font-weight: 800;
+    }
+
+    .notice {
+      margin-top: 20px;
+      padding: 16px 18px;
+      border: 1px solid #d7e4ef;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--text-sub);
+      font-size: 12px;
+      line-height: 1.75;
+    }
+
+    .notice strong { color: #40566a; }
+
+    .error {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      background: #fff1f3;
+      color: var(--danger);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1000px) {
+      .calculator-grid { grid-template-columns: 1fr; }
+      .input-panel { position: static; }
+    }
+
+    @media (max-width: 768px) {
+      .schedule-head { padding: 20px; }
+      .schedule-head h2 { font-size: 18px; }
+      table { min-width: 780px; }
+      th {
+        height: 50px;
+        padding: 0 16px;
+        font-size: 12px;
+      }
+      td {
+        height: 56px;
+        padding: 0 16px;
+        font-size: 13px;
+      }
+      td:nth-child(4) { font-size: 14px; }
+    }
+
+    @media (max-width: 600px) {
+      .page {
+        width: calc(100% - 20px);
+        padding-top: 26px;
+      }
+
+      .input-panel,
+      .summary-card {
+        padding: 20px;
+      }
+
+      .summary-head { flex-direction: column; }
+      .summary-head h2 { font-size: 26px; }
+      .summary-head h2::before { height: 23px; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .mini-summary { grid-template-columns: 1fr; }
+      .term-row { grid-template-columns: minmax(0, 1fr) 95px; }
+    }
+  </style>
+</head>
+
+<body>
+<main class="page">
+  <header class="header">
+    <div class="brand">
+      <span class="brand-mark">MG</span>
+      새마을금고 금융계산 서비스
+    </div>
+
+    <h1>MG 맞춤형 대출 상환 계산기</h1>
+    <p>
+      대출 조건을 입력하면 예상 월 상환액과 총 이자,
+      회차별 상환 스케줄을 간편하게 확인할 수 있습니다.
+    </p>
+  </header>
+
+  <section class="calculator-grid">
+    <aside class="card input-panel">
+      <div class="panel-title">
+        <h2>대출 조건 입력</h2>
+        <span class="panel-step">STEP 01</span>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          <span>대출 금액</span>
+          <span class="hint">만원 단위</span>
+        </div>
+
+        <div class="input-wrap">
+          <input id="loanAmount" type="number" min="1" value="10000" />
+          <span class="input-unit">만원</span>
+        </div>
+
+        <div class="quick-buttons">
+          <button type="button" class="quick-btn" data-add="100">+100만</button>
+          <button type="button" class="quick-btn" data-add="500">+500만</button>
+          <button type="button" class="quick-btn" data-add="1000">+1,000만</button>
+        </div>
+
+        <div class="range-box">
+          <input id="loanAmountRange" type="range" min="100" max="50000" step="100" value="10000" />
+          <div class="range-labels">
+            <span>100만원</span>
+            <span>5억원</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          <span>대출 기간</span>
+        </div>
+
+        <div class="term-row">
+          <div class="input-wrap">
+            <input id="loanTerm" type="number" min="1" value="36" />
+          </div>
+
+          <div class="select-wrap">
+            <select id="termUnit">
+              <option value="month">개월</option>
+              <option value="year">년</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="range-box">
+          <input id="loanTermRange" type="range" min="1" max="120" step="1" value="36" />
+          <div class="range-labels">
+            <span id="termRangeMin">1개월</span>
+            <span id="termRangeMax">120개월</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          <span>연 이자율</span>
+          <span class="hint">연 기준</span>
+        </div>
+
+        <div class="input-wrap">
+          <input id="interestRate" type="number" min="0" max="100" step="0.01" value="4.50" />
+          <span class="input-unit">%</span>
+        </div>
+
+        <div class="range-box">
+          <input id="interestRateRange" type="range" min="0" max="20" step="0.1" value="4.5" />
+          <div class="range-labels">
+            <span>0%</span>
+            <span>20%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">
+          <span>상환 방식</span>
+        </div>
+
+        <div class="repayment-options">
+          <div class="radio-card">
+            <input type="radio" name="repaymentType" id="equalPayment" value="equalPayment" checked />
+            <label for="equalPayment">
+              <span class="radio-indicator"></span>
+              <span class="radio-text">
+                <strong>원리금균등분할상환</strong>
+                <small>매월 동일한 원리금을 납부합니다.</small>
+              </span>
+            </label>
+          </div>
+
+          <div class="radio-card">
+            <input type="radio" name="repaymentType" id="equalPrincipal" value="equalPrincipal" />
+            <label for="equalPrincipal">
+              <span class="radio-indicator"></span>
+              <span class="radio-text">
+                <strong>원금균등분할상환</strong>
+                <small>매월 동일한 원금과 잔액에 따른 이자를 납부합니다.</small>
+              </span>
+            </label>
+          </div>
+
+          <div class="radio-card">
+            <input type="radio" name="repaymentType" id="bullet" value="bullet" />
+            <label for="bullet">
+              <span class="radio-indicator"></span>
+              <span class="radio-text">
+                <strong>만기일시상환</strong>
+                <small>매월 이자를 납부하고 만기에 원금을 상환합니다.</small>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div id="errorMessage" class="error"></div>
+
+      <div class="action-row">
+        <button id="calculateButton" class="calculate-btn" type="button">계산하기</button>
+        <button id="resetButton" class="reset-btn" type="button">초기화</button>
+      </div>
+    </aside>
+
+    <div class="result-area">
+      <section class="card summary-card">
+        <div class="summary-head">
+          <div>
+            <h2>예상 상환 결과</h2>
+            <p>입력한 조건을 기준으로 계산한 예상 금액입니다.</p>
+          </div>
+
+          <span class="method-badge" id="selectedMethodBadge">
+            원리금균등분할상환
+          </span>
+        </div>
+
+        <div class="summary-grid">
+          <article class="summary-item">
+            <span class="label">1회차 예상 상환액</span>
+            <strong>
+              <span id="firstPayment">0</span>
+              <span>원</span>
+            </strong>
+          </article>
+
+          <article class="summary-item">
+            <span class="label">총 이자 합계</span>
+            <strong>
+              <span id="totalInterest">0</span>
+              <span>원</span>
+            </strong>
+          </article>
+        </div>
+
+        <div class="mini-summary">
+          <div>
+            <small>대출 원금</small>
+            <b id="summaryPrincipal">0원</b>
+          </div>
+
+          <div>
+            <small>대출 기간</small>
+            <b id="summaryTerm">0개월</b>
+          </div>
+
+          <div>
+            <small>적용 금리</small>
+            <b id="summaryRate">0%</b>
+          </div>
+        </div>
+      </section>
+
+      <section class="card schedule-card">
+        <div class="schedule-head">
+          <div>
+            <h2>회차별 상환 스케줄</h2>
+            <p>월별 예상 원금·이자·납입금·잔액을 확인하세요.</p>
+          </div>
+
+          <span class="table-count">
+            총 <span id="scheduleCount">0</span>회
+          </span>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>회차</th>
+                <th>원금</th>
+                <th>이자</th>
+                <th>월 납입금</th>
+                <th>대출 잔액</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="notice">
+        <strong>안내사항</strong><br />
+        본 계산 결과는 고객 상담을 위한 예상값이며,
+        실제 대출 실행 시 대출 실행일, 이자 계산 방식,
+        일수 계산 기준, 우대금리, 중도상환,
+        휴일 처리 및 원 단위 절사·반올림 기준 등에 따라
+        실제 납입금액과 차이가 발생할 수 있습니다.
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const loanAmountInput = document.getElementById("loanAmount");
+  const loanAmountRange = document.getElementById("loanAmountRange");
+  const loanTermInput = document.getElementById("loanTerm");
+  const loanTermRange = document.getElementById("loanTermRange");
+  const termUnitSelect = document.getElementById("termUnit");
+  const interestRateInput = document.getElementById("interestRate");
+  const interestRateRange = document.getElementById("interestRateRange");
+  const scheduleBody = document.getElementById("scheduleBody");
+  const errorMessage = document.getElementById("errorMessage");
+
+  function formatWon(value) {
+    return Math.round(value).toLocaleString("ko-KR");
+  }
+
+  function roundWon(value) {
+    return Math.round(value);
+  }
+
+  function getRepaymentType() {
+    return document.querySelector('input[name="repaymentType"]:checked').value;
+  }
+
+  function getRepaymentName(type) {
+    const names = {
+      equalPayment: "원리금균등분할상환",
+      equalPrincipal: "원금균등분할상환",
+      bullet: "만기일시상환"
+    };
+    return names[type];
+  }
+
+  function getTermMonths() {
+    const term = Number(loanTermInput.value);
+    return termUnitSelect.value === "year" ? Math.round(term * 12) : Math.round(term);
+  }
+
+  function calculateEqualPayment(principal, months, annualRate) {
+    const monthlyRate = annualRate / 100 / 12;
+    let balance = principal;
+
+    let payment;
+    if (monthlyRate === 0) {
+      payment = principal / months;
+    } else {
+      const factor = Math.pow(1 + monthlyRate, months);
+      payment = principal * monthlyRate * factor / (factor - 1);
+    }
+
+    let totalInterest = 0;
+    const schedule = [];
+
+    for (let i = 1; i <= months; i++) {
+      const interest = balance * monthlyRate;
+      let principalPayment = payment - interest;
+
+      if (i === months) {
+        principalPayment = balance;
+      }
+
+      const actualPayment = principalPayment + interest;
+      balance -= principalPayment;
+
+      if (Math.abs(balance) < 1) {
+        balance = 0;
+      }
+
+      totalInterest += interest;
+
+      schedule.push({
+        period: i,
+        principal: roundWon(principalPayment),
+        interest: roundWon(interest),
+        payment: roundWon(actualPayment),
+        balance: roundWon(Math.max(0, balance))
+      });
+    }
+
+    return {
+      schedule,
+      firstPayment: schedule[0].payment,
+      totalInterest: roundWon(totalInterest)
+    };
+  }
+
+  function calculateEqualPrincipal(principal, months, annualRate) {
+    const monthlyRate = annualRate / 100 / 12;
+    const basePrincipal = principal / months;
+    let balance = principal;
+    let totalInterest = 0;
+    const schedule = [];
+
+    for (let i = 1; i <= months; i++) {
+      const interest = balance * monthlyRate;
+      const principalPayment = i === months ? balance : basePrincipal;
+      const payment = principalPayment + interest;
+
+      balance -= principalPayment;
+
+      if (Math.abs(balance) < 1) {
+        balance = 0;
+      }
+
+      totalInterest += interest;
+
+      schedule.push({
+        period: i,
+        principal: roundWon(principalPayment),
+        interest: roundWon(interest),
+        payment: roundWon(payment),
+        balance: roundWon(Math.max(0, balance))
+      });
+    }
+
+    return {
+      schedule,
+      firstPayment: schedule[0].payment,
+      totalInterest: roundWon(totalInterest)
+    };
+  }
+
+  function calculateBullet(principal, months, annualRate) {
+    const monthlyRate = annualRate / 100 / 12;
+    const monthlyInterest = principal * monthlyRate;
+    let totalInterest = 0;
+    const schedule = [];
+
+    for (let i = 1; i <= months; i++) {
+      const isLast = i === months;
+      const principalPayment = isLast ? principal : 0;
+      const interest = monthlyInterest;
+      const payment = principalPayment + interest;
+
+      totalInterest += interest;
+
+      schedule.push({
+        period: i,
+        principal: roundWon(principalPayment),
+        interest: roundWon(interest),
+        payment: roundWon(payment),
+        balance: isLast ? 0 : roundWon(principal)
+      });
+    }
+
+    return {
+      schedule,
+      firstPayment: schedule[0].payment,
+      totalInterest: roundWon(totalInterest)
+    };
+  }
+
+  function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.style.display = "block";
+  }
+
+  function calculateLoan() {
+    errorMessage.style.display = "none";
+
+    const amountManwon = Number(loanAmountInput.value);
+    const principal = amountManwon * 10000;
+    const months = getTermMonths();
+    const annualRate = Number(interestRateInput.value);
+    const repaymentType = getRepaymentType();
+
+    if (!Number.isFinite(principal) || principal <= 0) {
+      showError("대출 금액을 올바르게 입력해주세요.");
+      return;
+    }
+
+    if (!Number.isFinite(months) || months < 1 || months > 600) {
+      showError("대출 기간은 1개월 이상 600개월 이하로 입력해주세요.");
+      return;
+    }
+
+    if (!Number.isFinite(annualRate) || annualRate < 0 || annualRate > 100) {
+      showError("연 이자율을 올바르게 입력해주세요.");
+      return;
+    }
+
+    let result;
+
+    if (repaymentType === "equalPrincipal") {
+      result = calculateEqualPrincipal(principal, months, annualRate);
+    } else if (repaymentType === "bullet") {
+      result = calculateBullet(principal, months, annualRate);
+    } else {
+      result = calculateEqualPayment(principal, months, annualRate);
+    }
+
+    renderResult(principal, months, annualRate, repaymentType, result);
+  }
+
+  function renderResult(principal, months, annualRate, repaymentType, result) {
+    document.getElementById("firstPayment").textContent = formatWon(result.firstPayment);
+    document.getElementById("totalInterest").textContent = formatWon(result.totalInterest);
+    document.getElementById("summaryPrincipal").textContent = formatWon(principal) + "원";
+    document.getElementById("summaryTerm").textContent = months + "개월";
+    document.getElementById("summaryRate").textContent = annualRate.toFixed(2) + "%";
+    document.getElementById("selectedMethodBadge").textContent = getRepaymentName(repaymentType);
+    document.getElementById("scheduleCount").textContent = result.schedule.length;
+
+    scheduleBody.innerHTML = result.schedule.map(item => `
+      <tr>
+        <td>${item.period}</td>
+        <td>${formatWon(item.principal)}원</td>
+        <td>${formatWon(item.interest)}원</td>
+        <td>${formatWon(item.payment)}원</td>
+        <td>${formatWon(item.balance)}원</td>
+      </tr>
+    `).join("");
+  }
+
+  loanAmountRange.addEventListener("input", () => {
+    loanAmountInput.value = loanAmountRange.value;
+  });
+
+  loanAmountInput.addEventListener("input", () => {
+    const value = Number(loanAmountInput.value);
+    if (
+      value >= Number(loanAmountRange.min) &&
+      value <= Number(loanAmountRange.max)
+    ) {
+      loanAmountRange.value = value;
+    }
+  });
+
+  document.querySelectorAll(".quick-btn").forEach(button => {
+    button.addEventListener("click", () => {
+      const current = Number(loanAmountInput.value) || 0;
+      const add = Number(button.dataset.add);
+      const next = current + add;
+
+      loanAmountInput.value = next;
+      loanAmountRange.value = Math.min(next, Number(loanAmountRange.max));
+    });
+  });
+
+  loanTermRange.addEventListener("input", () => {
+    loanTermInput.value = loanTermRange.value;
+  });
+
+  loanTermInput.addEventListener("input", () => {
+    const value = Number(loanTermInput.value);
+    if (
+      value >= Number(loanTermRange.min) &&
+      value <= Number(loanTermRange.max)
+    ) {
+      loanTermRange.value = value;
+    }
+  });
+
+  interestRateRange.addEventListener("input", () => {
+    interestRateInput.value = Number(interestRateRange.value).toFixed(1);
+  });
+
+  interestRateInput.addEventListener("input", () => {
+    const value = Number(interestRateInput.value);
+    if (
+      value >= Number(interestRateRange.min) &&
+      value <= Number(interestRateRange.max)
+    ) {
+      interestRateRange.value = value;
+    }
+  });
+
+  termUnitSelect.addEventListener("change", () => {
+    const currentValue = Number(loanTermInput.value) || 1;
+
+    if (termUnitSelect.value === "year") {
+      const years = Math.max(1, Math.round(currentValue / 12));
+      loanTermRange.min = "1";
+      loanTermRange.max = "30";
+      loanTermRange.step = "1";
+      loanTermInput.value = years;
+      loanTermRange.value = Math.min(years, 30);
+      document.getElementById("termRangeMin").textContent = "1년";
+      document.getElementById("termRangeMax").textContent = "30년";
+    } else {
+      const months = Math.max(1, currentValue * 12);
+      loanTermRange.min = "1";
+      loanTermRange.max = "120";
+      loanTermRange.step = "1";
+      loanTermInput.value = months;
+      loanTermRange.value = Math.min(months, 120);
+      document.getElementById("termRangeMin").textContent = "1개월";
+      document.getElementById("termRangeMax").textContent = "120개월";
+    }
+  });
+
+  document.getElementById("calculateButton").addEventListener("click", calculateLoan);
+
+  document.getElementById("resetButton").addEventListener("click", () => {
+    loanAmountInput.value = 10000;
+    loanAmountRange.value = 10000;
+
+    loanTermInput.value = 36;
+    loanTermRange.min = 1;
+    loanTermRange.max = 120;
+    loanTermRange.value = 36;
+    termUnitSelect.value = "month";
+
+    document.getElementById("termRangeMin").textContent = "1개월";
+    document.getElementById("termRangeMax").textContent = "120개월";
+
+    interestRateInput.value = "4.50";
+    interestRateRange.value = "4.5";
+
+    document.getElementById("equalPayment").checked = true;
+
+    calculateLoan();
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+      calculateLoan();
+    }
+  });
+
+  calculateLoan();
+</script>
+</body>
+</html>
